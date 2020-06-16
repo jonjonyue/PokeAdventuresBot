@@ -1,0 +1,34 @@
+[{
+  "routeName": "Route 1",
+  "ridNo": "1",
+  "connections": [
+    {"ridNo": 2},
+    {"ridNo": 3}
+  ],
+  "pokemon": [
+    {"idNo": 1},
+    {"idNo": 2}
+  ],
+  "photoURL":"https://cdn.bulbagarden.net/upload/1/1b/Kanto_Route_1_HGSS.png"
+},{
+  "routeName": "Route 2",
+  "ridNo": "2",
+  "connections": [
+    {"ridNo": 1}
+  ],
+  "pokemon": [
+    {"idNo": 2},
+    {"idNo": 3}
+  ],
+  "photoURL":"https://cdn.bulbagarden.net/upload/c/c0/Kanto_Route_2_HGSS.png"
+},{
+  "routeName": "Route 3",
+  "ridNo": "3",
+  "connections": [
+    {"ridNo": 1}
+  ],
+  "pokemon": [
+    {"idNo": 3}
+  ],
+  "photoURL":"https://cdn.bulbagarden.net/upload/8/83/Kanto_Route_3_HGSS.png"
+}]
