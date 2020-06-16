@@ -23,6 +23,20 @@ util = db["util"]
 client = discord.Client()
 bot = commands.Bot(command_prefix='-')
 
+activePoke = {
+    'pokeName':"",
+    'level':0,
+    'health':0,
+    'attack':0,
+    'spattack':0,
+    'defense':0,
+    'spdefense':0,
+    'speed':0,
+    '_pid':0,
+    'isActive':0,
+    'photoURL':""
+}
+
 # Register command for trainers
 @bot.command(name='start', help='Starts your pokémon adventure')
 async def start(ctx):
@@ -38,7 +52,7 @@ async def start(ctx):
 
     myquery = { "_id": ctx.author.id } # Query to see if they are registered, if not, register them
     if (trainers.count_documents(myquery) == 0):
-        post = {"_id": ctx.author.id, "initiated": 0, "_title":"", "_pokemon":[]}
+        post = {"_id": ctx.author.id, "initiated": 0, "_title":"", "_pokemon":[], "_party":[], "pcount":0}
         trainers.insert_one(post)
 
         embed.add_field(name='Generation I:', value='Charmander | Squirtle | Bulbasaur')
@@ -70,12 +84,100 @@ async def pick(ctx, pokeChoice):
     
     poke = pokemon.find_one({ 'pokeName': pokeChoice})
     poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
+    poke["level"] = 5
+    poke["_ptid"] = trainer['pcount'] + 1
+    # TODO: randomize pokemon stats
     util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
     trainers.update_one({'_id': ctx.author.id}, {'$set': {'initiated': 1}}, upsert=False)
     trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
+    trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
+
+    # add new pokemon to party
+    trainers.update_one({'_id': ctx.author.id}, {'$push': {'_party': {'_pid':poke['_pid']}}}, upsert=True)
 
 
     message = 'Congratulations! Your ' + pokeChoice + ' seems to like you. I hope you have many adventures together to come. Use `-info` to see more about your pokémon.'
     await ctx.send(message)
+
+@bot.command(name='info', help='see detailed information on your active pokemon')
+async def info(ctx, *ptid):
+    # Getting pokemon information
+    trainer = trainers.find_one({'_id': ctx.author.id})
+
+    # If id arg was given, get the specific pokemon info
+    if (len(ptid) > 0):
+        for poke in trainer['_pokemon']:
+            if (str(poke['_ptid']) == str(ptid[0])):
+                activePoke = poke
+                break
+    # if not, get the current selected pokemon info
+    else:
+        targetid = trainer['_party'][0]['_pid']
+        for poke in trainer['_pokemon']:
+            if (poke['_pid'] == targetid):
+                activePoke = poke
+                break
+
+
+    # Setting up Embed
+    title = '**Level ' + str(activePoke['level']) + ' ' + activePoke['pokeName'] + "**"
+    embed = discord.Embed(
+        title = title,
+        description = '0/300XP\n**HP:** ' + str(activePoke['health']) + 
+        "\n **Attack:** " + str(activePoke['attack']) +
+        "\n **Sp. Attack:** " + str(activePoke['spattack']) +
+        "\n **Defense:** " + str(activePoke['defense']) +
+        "\n **Sp. Defense:** " + str(activePoke['spdefense']) +
+        "\n **Speed:** " + str(activePoke['speed']),
+        color = discord.Color.green()
+    )
+    footer = "Selected Pokémon: " + str(activePoke["_ptid"]) + "/" + str(trainer["pcount"])
+    embed.set_footer(text=footer)
+    embed.set_image(url=activePoke['photoURL'])
+    embed.set_author(name='Professor Kitty',
+    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+
+    await ctx.send(embed=embed)
+
+# Pokemon Listing
+@bot.command(name='checkpc', help='List all your pokemon')
+async def listPokes(ctx):
+
+    trainer = trainers.find_one({'_id': ctx.author.id})
+    pokeListStr = ""
+    for poke in trainer['_pokemon']:
+        pokeListStr += "**" + poke['pokeName'] + "** | Level: " + str(poke['level']) + " | ID: " + str(poke['_ptid']) + "\n"
+    title = '**Your pokémon:**'
+    embed = discord.Embed(
+        title = title,
+        description = pokeListStr,
+        color = discord.Color.green()
+    )
+    embed.set_image(url=activePoke['photoURL'])
+    embed.set_author(name='Professor Kitty',
+    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+
+    await ctx.send(embed=embed)
+
+# Catching pokemon for testing purposes
+@bot.command(name='catch')
+async def catchPoke(ctx, arg):
+    pokeName = arg.capitalize()
+    trainer = trainers.find_one({'_id': ctx.author.id})
+
+    # check vs pokemon names
+    if (pokemon.count_documents({'pokeName': pokeName}) == 0):
+        await ctx.send('That is not a valid pokemon name D:')
+        return
+
+    poke = pokemon.find_one({ 'pokeName': pokeName})
+    poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
+    poke["level"] = 5
+    poke["_ptid"] = trainer['pcount'] + 1
+    util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
+    trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
+    trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
+
+    await ctx.send("You caught a " + pokeName + "!")
 
 bot.run(TOKEN)

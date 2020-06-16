@@ -6,7 +6,8 @@
   "spattack": 60,
   "defense": 43,
   "spdefense": 59,
-  "speed": 65
+  "speed": 65,
+  "photoURL":"https://cdn.bulbagarden.net/upload/7/73/004Charmander.png"
 },{
   "pokeName": "Squirtle",
   "idNo": "2",
@@ -15,7 +16,8 @@
   "spattack": 50,
   "defense": 65,
   "spdefense": 64,
-  "speed": 43
+  "speed": 43,
+  "photoURL":"https://cdn.bulbagarden.net/upload/3/39/007Squirtle.png"
 },{
   "pokeName": "Bulbasaur",
   "idNo": "3",
@@ -24,5 +26,6 @@
   "spattack": 65,
   "defense": 49,
   "spdefense": 65,
-  "speed": 45
+  "speed": 45,
+  "photoURL":"https://cdn.bulbagarden.net/upload/2/21/001Bulbasaur.png"
 }]
