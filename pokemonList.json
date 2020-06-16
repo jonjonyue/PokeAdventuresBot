@@ -1,0 +1,28 @@
+[{
+  "pokeName": "Charmander",
+  "idNo": "1",
+  "health": 39,
+  "attack": 52,
+  "spattack": 60,
+  "defense": 43,
+  "spdefense": 59,
+  "speed": 65
+},{
+  "pokeName": "Squirtle",
+  "idNo": "2",
+  "health": 44,
+  "attack": 48,
+  "spattack": 50,
+  "defense": 65,
+  "spdefense": 64,
+  "speed": 43
+},{
+  "pokeName": "Bulbasaur",
+  "idNo": "3",
+  "health": 45,
+  "attack": 49,
+  "spattack": 65,
+  "defense": 49,
+  "spdefense": 65,
+  "speed": 45
+}]

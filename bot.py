@@ -51,7 +51,7 @@ async def start(ctx):
 # Pick first pokemon
 @bot.command(name='pick', help='Used to pick your first pokémon')
 async def pick(ctx, pokeChoice):
-
+    pokeChoice = pokeChoice.capitalize()
     # check if they are in registering state
     query = { '_id': ctx.author.id }
     if (trainers.count_documents(query) == 0):
