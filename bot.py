@@ -18,6 +18,7 @@ cluster = MongoClient(os.getenv('MONGODB_URL'))
 db = cluster["pokemon_bot"]
 trainers = db["trainers"]
 pokemon = db["pokemon"]
+routes = db["routes"]
 util = db["util"]
 
 client = discord.Client()
@@ -52,7 +53,7 @@ async def start(ctx):
 
     myquery = { "_id": ctx.author.id } # Query to see if they are registered, if not, register them
     if (trainers.count_documents(myquery) == 0):
-        post = {"_id": ctx.author.id, "initiated": 0, "_title":"", "_pokemon":[], "_party":[], "pcount":0}
+        post = {"_id": ctx.author.id, "initiated": 0, "_title":"", "_pokemon":[], "_party":[], "pcount":0, "routes":[]}
         trainers.insert_one(post)
 
         embed.add_field(name='Generation I:', value='Charmander | Squirtle | Bulbasaur')
@@ -179,5 +180,44 @@ async def catchPoke(ctx, arg):
     trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
 
     await ctx.send("You caught a " + pokeName + "!")
+
+@bot.command(name='route', help='Gets info on the chosen route')
+async def routeInfo(ctx, ridNo):
+    if (ridNo.isnumeric()):
+        if (routes.count_documents({'ridNo': ridNo}) == 0):
+            await ctx.send('The given route number is invalid. Please ask about a valid route :)')
+            return
+    else:
+        await ctx.send('Please input a route number not a bunch letters please ;-;')
+        return
+
+    route = routes.find_one({'ridNo': ridNo})
+
+    # Setting up Embed
+    title = '**' + route['routeName'] + " info**"
+    embed = discord.Embed(
+        title = title,
+        color = discord.Color.green()
+    )
+
+    # Setup route embed
+    connectionEmbed = ""
+    for routeName in route['connections']:
+        connectionEmbed += routeName['routeName'] + "\n"
+    embed.add_field(name='Connects to:', value=connectionEmbed)
+
+    # Setup pokemon list embed
+    pokemonEmbed = ""
+    for poke in route['pokemon']:
+        pokemonEmbed += pokemon.find_one({'idNo': poke['idNo']})['pokeName'] + "\n"
+    embed.add_field(name='Pokemon Sightings:', value=pokemonEmbed)
+
+    footer = "Selected Route: " + route['routeName']
+    embed.set_footer(text=footer)
+    embed.set_image(url=route['photoURL'])
+    embed.set_author(name='Professor Kitty',
+    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+
+    await ctx.send(embed=embed)
 
 bot.run(TOKEN)
