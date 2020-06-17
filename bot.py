@@ -1,6 +1,7 @@
 # bot.py
 import os
 import random
+import time
 
 import discord
 from discord.ext import commands
@@ -41,6 +42,8 @@ activePoke = {
 # Register command for trainers
 @bot.command(name='start', help='Starts your pokémon adventure')
 async def start(ctx):
+    if isDMChannel:
+        return
     title = "Hello " + ctx.author.name
     embed = discord.Embed(
         title = title,
@@ -66,6 +69,8 @@ async def start(ctx):
 # Pick first pokemon
 @bot.command(name='pick', help='Used to pick your first pokémon')
 async def pick(ctx, pokeChoice):
+    if isDMChannel:
+        return
     pokeChoice = pokeChoice.capitalize()
     # check if they are in registering state
     query = { '_id': ctx.author.id }
@@ -102,6 +107,8 @@ async def pick(ctx, pokeChoice):
 
 @bot.command(name='info', help='see detailed information on your active pokemon')
 async def info(ctx, *ptid):
+    if isDMChannel:
+        return
     # Getting pokemon information
     trainer = trainers.find_one({'_id': ctx.author.id})
 
@@ -143,6 +150,8 @@ async def info(ctx, *ptid):
 # Pokemon Listing
 @bot.command(name='checkpc', help='List all your pokemon')
 async def listPokes(ctx):
+    if isDMChannel:
+        return
 
     trainer = trainers.find_one({'_id': ctx.author.id})
     pokeListStr = ""
@@ -163,6 +172,8 @@ async def listPokes(ctx):
 # Catching pokemon for testing purposes
 @bot.command(name='catch')
 async def catchPoke(ctx, arg):
+    if isDMChannel:
+        return
     pokeName = arg.capitalize()
     trainer = trainers.find_one({'_id': ctx.author.id})
 
@@ -181,8 +192,12 @@ async def catchPoke(ctx, arg):
 
     await ctx.send("You caught a " + pokeName + "!")
 
+
+# Route Management
 @bot.command(name='route', help='Gets info on the chosen route')
 async def routeInfo(ctx, ridNo):
+    if isDMChannel:
+        return
     if (ridNo.isnumeric()):
         if (routes.count_documents({'ridNo': ridNo}) == 0):
             await ctx.send('The given route number is invalid. Please ask about a valid route :)')
@@ -197,6 +212,7 @@ async def routeInfo(ctx, ridNo):
     title = '**' + route['routeName'] + " info**"
     embed = discord.Embed(
         title = title,
+        description = route['desc'],
         color = discord.Color.green()
     )
 
@@ -219,5 +235,52 @@ async def routeInfo(ctx, ridNo):
     icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
 
     await ctx.send(embed=embed)
+
+@bot.command(name='explore', help='explore a route. Usage `-explore 1`')
+async def exploreRoute(ctx, ridNo):
+
+    if (ridNo.isnumeric()):
+        if (routes.count_documents({'ridNo': ridNo}) == 0):
+            await ctx.send('The given route number is invalid. Please ask about a valid route :)')
+            return
+    else:
+        await ctx.send('Please input a route number not a bunch letters please ;-;')
+        return
+
+    route = routes.find_one({'ridNo': ridNo})
+     # Setting up Embed
+    title = '**Exploring ' + route['routeName'] + " **"
+    embed = discord.Embed(
+        title = title,
+        description = route['desc'],
+        color = discord.Color.green()
+    )
+
+    footer = "Selected Route: " + route['routeName']
+    embed.set_footer(text=footer)
+    embed.set_image(url=route['photoURL'])
+    embed.set_author(name='Professor Kitty',
+    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+    await ctx.author.send(embed=embed)
+    await ctx.author.send('Please type `enter` to begin your exploration.')
+
+    timeout = time.time() + 60
+    gotDM = False
+    while not gotDM and time.time() < timeout:
+        msg = await bot.wait_for('message', timeout=60)
+        if msg:
+            if isinstance(msg.channel, discord.channel.DMChannel) and msg.author == ctx.author:
+                print(msg)
+                if msg.content == 'enter':
+                    await msg.channel.send('Got your message!')
+                    gotDM = True
+                    break
+                else:
+                    await ctx.author.send('Please use `enter` to begin your exploration.')
+    if not gotDM:
+        ctx.author.send('Your exploration has timed out, please try again')
+
+def isDMChannel(channel):
+    return isinstance(channel, discord.channel.DMChannel)
 
 bot.run(TOKEN)
