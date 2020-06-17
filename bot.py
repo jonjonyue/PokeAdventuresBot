@@ -269,8 +269,7 @@ async def exploreRoute(ctx, ridNo):
     while not gotDM and time.time() < timeout:
         msg = await bot.wait_for('message', timeout=60)
         if msg:
-            if isinstance(msg.channel, discord.channel.DMChannel) and msg.author == ctx.author:
-                print(msg)
+            if isDMChannel(msg.channel) and msg.author == ctx.author:
                 if msg.content == 'enter':
                     await msg.channel.send('Got your message!')
                     gotDM = True
@@ -280,6 +279,7 @@ async def exploreRoute(ctx, ridNo):
     if not gotDM:
         ctx.author.send('Your exploration has timed out, please try again')
 
+# Checks if the given channel is a private message or not
 def isDMChannel(channel):
     return isinstance(channel, discord.channel.DMChannel)
 
