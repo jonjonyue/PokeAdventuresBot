@@ -173,7 +173,7 @@ async def listPokes(ctx):
     await ctx.send(embed=embed)
 
 # Catching pokemon for testing purposes
-@bot.command(name='catch')
+@bot.command(name='catch', help="`-catch <pokemon name>` only charmander bulbasaur and squirtle are available")
 async def catchPoke(ctx, arg):
     if isDMChannel(ctx.channel):
         return
