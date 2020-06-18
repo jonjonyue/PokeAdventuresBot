@@ -130,7 +130,6 @@ async def info(ctx, *arg):
                 activePoke = poke
                 break
 
-
     # Setting up Embed
     title = '**Level ' + str(activePoke['level']) + ' ' + activePoke['pokeName'] + "**"
     embed = discord.Embed(
@@ -152,7 +151,7 @@ async def info(ctx, *arg):
     await ctx.send(embed=embed)
 
 # Pokemon Listing
-@bot.command(name='checkpc', help='List all your pokemon')
+@bot.command(name='pc', help='List all your pokemon')
 async def listPokes(ctx):
     if isDMChannel(ctx.channel):
         return
@@ -281,7 +280,7 @@ async def exploreRoute(ctx, ridNo):
         if msg:
             if isDMChannel(msg.channel) and msg.author == ctx.author:
                 if msg.content == 'enter':
-                    await msg.channel.send('Got your message!')
+                    await msg.channel.send('Beginning the exploration of ' + route['routeName'])
                     gotDM = True
                     break
                 else:
@@ -292,60 +291,66 @@ async def exploreRoute(ctx, ridNo):
     #   - determine pokemon encountered
     #   - determine trainer battles?
     routePokes = route['pokemon']
-    sel = random.randint(0, len(routePokes) - 1)
-    poke = pokemon.find_one({'idNo': routePokes[sel]['idNo']})
-    poke["level"] = 5
-    poke = setPokeStats(poke, False)
+    numEnc = random.randint(1,3)
+
+    for i in range(0, numEnc):
+        time.sleep(random.randint(1,3))
+        sel = random.randint(0, len(routePokes) - 1)
+        poke = pokemon.find_one({'idNo': routePokes[sel]['idNo']})
+        poke["level"] = 5
+        poke = setPokeStats(poke, False)
 
 
-    # TODO: Resolve encounters
-    #   - catch pokemon
-    #   - use items
-    #   - battle trainers
-    title = '**A wild  ' + poke['pokeName'] + " appeared!**"
-    embed = discord.Embed(
-        title = title,
-        description = 'Type `catch` to catch the pokemon!',
-        color = discord.Color.green()
-    )
+        # TODO: Resolve encounters
+        #   - catch pokemon
+        #   - use items
+        #   - battle trainers
+        title = '**A wild  ' + poke['pokeName'] + " appeared!**"
+        embed = discord.Embed(
+            title = title,
+            description = 'Type `catch` to catch the pokemon!',
+            color = discord.Color.green()
+        )
 
-    footer = "Encounter on " + route['routeName']
-    embed.set_footer(text=footer)
-    embed.set_image(url=poke['photoURL'])
-    embed.set_author(name='Professor Kitty',
-    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+        footer = "Encounter on " + route['routeName']
+        embed.set_footer(text=footer)
+        embed.set_image(url=poke['photoURL'])
+        embed.set_author(name='Professor Kitty',
+        icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
 
-    await ctx.author.send(embed=embed)
+        await ctx.author.send(embed=embed)
 
-    caught = False
-    while not caught:
-        try:
-            msg = await bot.wait_for('message', timeout=60)
-        except TimeoutError:
-            ctx.author.send("Oh no the wild pokemon fled!")
-            break
-        if msg:
-            if isDMChannel(msg.channel) and msg.author == ctx.author:
-                if msg.content == 'catch':
-                    await msg.channel.send('You caught a wild ' + poke['pokeName'] + '. Use `-info latest` in the public channel to see its information')
-                    caught = True
-                    break
-                else:
-                    await ctx.author.send('Oh no the wild pokemon got away!')
-                    break
-    if caught:
-        poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
-        poke["_ptid"] = trainer['pcount'] + 1
-        util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
-        trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
-        trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
+        caught = False
+        while not caught:
+            try:
+                msg = await bot.wait_for('message', timeout=60)
+            except TimeoutError:
+                ctx.author.send("Oh no the wild pokemon fled!")
+                break
+            if msg:
+                if isDMChannel(msg.channel) and msg.author == ctx.author:
+                    if msg.content == 'catch':
+                        await msg.channel.send('You caught a wild ' + poke['pokeName'] + '. Use `-info latest` in the public channel to see its information')
+                        caught = True
+                        break
+                    else:
+                        await ctx.author.send('Oh no the wild pokemon got away!')
+                        break
+        if caught:
+            poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
+            poke["_ptid"] = trainer['pcount'] + 1
+            util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
+            trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
+            trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
+        if i < numEnc - 1:
+            await ctx.author.send('The adventure continues...')
 
 
     # TODO: Resolve exploration
     #   - add any new pokemon to pc
     #   - restore status of pokemon
     #   - update any player statistics
-
+    await ctx.author.send('Your adventure on ' + route['routeName'] + ' is complete! Returning to town...')
 
 # Checks if the given channel is a private message or not
 def isDMChannel(channel):
