@@ -42,7 +42,7 @@ activePoke = {
 # Register command for trainers
 @bot.command(name='start', help='Starts your pokémon adventure')
 async def start(ctx):
-    if isDMChannel:
+    if isDMChannel(ctx.channel):
         return
     title = "Hello " + ctx.author.name
     embed = discord.Embed(
@@ -69,7 +69,7 @@ async def start(ctx):
 # Pick first pokemon
 @bot.command(name='pick', help='Used to pick your first pokémon')
 async def pick(ctx, pokeChoice):
-    if isDMChannel:
+    if isDMChannel(ctx.channel):
         return
     pokeChoice = pokeChoice.capitalize()
     # check if they are in registering state
@@ -92,7 +92,8 @@ async def pick(ctx, pokeChoice):
     poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
     poke["level"] = 5
     poke["_ptid"] = trainer['pcount'] + 1
-    # TODO: randomize pokemon stats
+    poke = setPokeStats(poke, False)
+
     util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
     trainers.update_one({'_id': ctx.author.id}, {'$set': {'initiated': 1}}, upsert=False)
     trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
@@ -106,19 +107,22 @@ async def pick(ctx, pokeChoice):
     await ctx.send(message)
 
 @bot.command(name='info', help='see detailed information on your active pokemon')
-async def info(ctx, *ptid):
-    if isDMChannel:
+async def info(ctx, *arg):
+    if isDMChannel(ctx.channel):
         return
     # Getting pokemon information
     trainer = trainers.find_one({'_id': ctx.author.id})
 
-    # If id arg was given, get the specific pokemon info
-    if (len(ptid) > 0):
-        for poke in trainer['_pokemon']:
-            if (str(poke['_ptid']) == str(ptid[0])):
-                activePoke = poke
-                break
-    # if not, get the current selected pokemon info
+    if len(arg) > 0:
+        # If checking latest pokemon
+        if arg[0] == "latest":
+            activePoke = trainer['_pokemon'][len(trainer['_pokemon']) - 1]
+        else: 
+            for poke in trainer['_pokemon']:
+                if (str(poke['_ptid']) == str(arg[0])):
+                    activePoke = poke
+                    break
+        # if not, get the current selected pokemon info
     else:
         targetid = trainer['_party'][0]['_pid']
         for poke in trainer['_pokemon']:
@@ -150,7 +154,7 @@ async def info(ctx, *ptid):
 # Pokemon Listing
 @bot.command(name='checkpc', help='List all your pokemon')
 async def listPokes(ctx):
-    if isDMChannel:
+    if isDMChannel(ctx.channel):
         return
 
     trainer = trainers.find_one({'_id': ctx.author.id})
@@ -172,7 +176,7 @@ async def listPokes(ctx):
 # Catching pokemon for testing purposes
 @bot.command(name='catch')
 async def catchPoke(ctx, arg):
-    if isDMChannel:
+    if isDMChannel(ctx.channel):
         return
     pokeName = arg.capitalize()
     trainer = trainers.find_one({'_id': ctx.author.id})
@@ -186,6 +190,7 @@ async def catchPoke(ctx, arg):
     poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
     poke["level"] = 5
     poke["_ptid"] = trainer['pcount'] + 1
+    poke = setPokeStats(poke, False)
     util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
     trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
     trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
@@ -196,7 +201,7 @@ async def catchPoke(ctx, arg):
 # Route Management
 @bot.command(name='route', help='Gets info on the chosen route')
 async def routeInfo(ctx, ridNo):
-    if isDMChannel:
+    if isDMChannel(ctx.channel):
         return
     if (ridNo.isnumeric()):
         if (routes.count_documents({'ridNo': ridNo}) == 0):
@@ -238,7 +243,7 @@ async def routeInfo(ctx, ridNo):
 
 @bot.command(name='explore', help='explore a route. Usage `-explore 1`')
 async def exploreRoute(ctx, ridNo):
-
+    
     if (ridNo.isnumeric()):
         if (routes.count_documents({'ridNo': ridNo}) == 0):
             await ctx.send('The given route number is invalid. Please ask about a valid route :)')
@@ -248,6 +253,8 @@ async def exploreRoute(ctx, ridNo):
         return
 
     route = routes.find_one({'ridNo': ridNo})
+    trainer = trainers.find_one({'_id': ctx.author.id})
+
      # Setting up Embed
     title = '**Exploring ' + route['routeName'] + " **"
     embed = discord.Embed(
@@ -264,10 +271,13 @@ async def exploreRoute(ctx, ridNo):
     await ctx.author.send(embed=embed)
     await ctx.author.send('Please type `enter` to begin your exploration.')
 
-    timeout = time.time() + 60
     gotDM = False
-    while not gotDM and time.time() < timeout:
-        msg = await bot.wait_for('message', timeout=60)
+    while not gotDM:
+        try:
+            msg = await bot.wait_for('message', timeout=60)
+        except TimeoutError:
+            ctx.author.send("Your exploration has timed out, please try again.")
+            return
         if msg:
             if isDMChannel(msg.channel) and msg.author == ctx.author:
                 if msg.content == 'enter':
@@ -276,11 +286,104 @@ async def exploreRoute(ctx, ridNo):
                     break
                 else:
                     await ctx.author.send('Please use `enter` to begin your exploration.')
-    if not gotDM:
-        ctx.author.send('Your exploration has timed out, please try again')
+
+    # TODO: Iterate through encounters
+    #   - determine # of encounters
+    #   - determine pokemon encountered
+    #   - determine trainer battles?
+    routePokes = route['pokemon']
+    sel = random.randint(0, len(routePokes) - 1)
+    poke = pokemon.find_one({'idNo': routePokes[sel]['idNo']})
+    poke["level"] = 5
+    poke = setPokeStats(poke, False)
+
+
+    # TODO: Resolve encounters
+    #   - catch pokemon
+    #   - use items
+    #   - battle trainers
+    title = '**A wild  ' + poke['pokeName'] + " appeared!**"
+    embed = discord.Embed(
+        title = title,
+        description = 'Type `catch` to catch the pokemon!',
+        color = discord.Color.green()
+    )
+
+    footer = "Encounter on " + route['routeName']
+    embed.set_footer(text=footer)
+    embed.set_image(url=poke['photoURL'])
+    embed.set_author(name='Professor Kitty',
+    icon_url='https://cdn.discordapp.com/attachments/719996777633415240/719996801133969528/tofuKingtransparent-cropped.png')
+
+    await ctx.author.send(embed=embed)
+
+    caught = False
+    while not caught:
+        try:
+            msg = await bot.wait_for('message', timeout=60)
+        except TimeoutError:
+            ctx.author.send("Oh no the wild pokemon fled!")
+            break
+        if msg:
+            if isDMChannel(msg.channel) and msg.author == ctx.author:
+                if msg.content == 'catch':
+                    await msg.channel.send('You caught a wild ' + poke['pokeName'] + '. Use `-info latest` in the public channel to see its information')
+                    caught = True
+                    break
+                else:
+                    await ctx.author.send('Oh no the wild pokemon got away!')
+                    break
+    if caught:
+        poke["_pid"] = util.find_one({ '_name': '_pidCount'})["_pidCount"]
+        poke["_ptid"] = trainer['pcount'] + 1
+        util.find_one_and_update({ '_name': '_pidCount'}, { '$inc': { '_pidCount': 1}})
+        trainers.update_one({'_id': ctx.author.id}, {'$push': {'_pokemon': poke}}, upsert=True)
+        trainers.update_one({'_id': ctx.author.id}, {'$inc': {'pcount': 1}}, upsert=True)
+
+
+    # TODO: Resolve exploration
+    #   - add any new pokemon to pc
+    #   - restore status of pokemon
+    #   - update any player statistics
+
 
 # Checks if the given channel is a private message or not
 def isDMChannel(channel):
     return isinstance(channel, discord.channel.DMChannel)
+
+def setPokeStats(poke, preset):
+    basePoke = pokemon.find_one({'idNo': poke['idNo']})
+
+    healthIV = random.randint(0,15)
+    attackIV = random.randint(0,15)
+    spattackIV = random.randint(0,15)
+    defenseIV = random.randint(0,15)
+    spdefenseIV = random.randint(0,15)
+    speedIV = random.randint(0,15)
+    if preset:
+        healthIV = poke['healthIV']
+        attackIV = poke['attackIV']
+        spattackIV = poke['spattackIV']
+        defenseIV = poke['defenseIV']
+        spdefenseIV = poke['spdefenseIV']
+        speedIV = poke['speedIV']
+    else:
+        poke['healthIV'] = healthIV
+        poke['attackIV'] = attackIV
+        poke['spattackIV'] = spattackIV
+        poke['defenseIV'] = defenseIV
+        poke['spdefenseIV'] = spdefenseIV
+        poke['speedIV'] = speedIV
+
+    poke['health'] = int((((basePoke['health'] + healthIV)*2) * poke['level'] / 100) + poke['level'] + 10)
+    poke['attack'] = int((((basePoke['attack'] + attackIV)*2) * poke['level'] / 100) + 5)
+    poke['spattack'] = int((((basePoke['spattack'] + spattackIV)*2) * poke['level'] / 100) + 5)
+    poke['defense'] = int((((basePoke['defense'] + defenseIV)*2) * poke['level'] / 100) + 5)
+    poke['spdefense'] = int((((basePoke['spdefense'] + spdefenseIV)*2) * poke['level'] / 100) + 5)
+    poke['speed'] = int((((basePoke['speed'] + speedIV)*2) * poke['level'] / 100) + 5)
+
+    poke['hp'] = poke['health'] 
+    return poke
+
 
 bot.run(TOKEN)
