@@ -1,6 +1,36 @@
 [{
-  "pokeName": "Charmander",
+  "pokeName": "Bulbasaur",
   "idNo": "1",
+  "health": 45,
+  "attack": 49,
+  "spattack": 65,
+  "defense": 49,
+  "spdefense": 65,
+  "speed": 45,
+  "photoURL":"https://cdn.bulbagarden.net/upload/2/21/001Bulbasaur.png"
+},{
+  "pokeName": "Ivysaur",
+  "idNo": "2",
+  "health": 60,
+  "attack": 62,
+  "spattack": 80,
+  "defense": 63,
+  "spdefense": 80,
+  "speed": 60,
+  "photoURL":"https://cdn.bulbagarden.net/upload/7/73/002Ivysaur.png"
+},{
+  "pokeName": "Venusaur",
+  "idNo": "3",
+  "health": 80,
+  "attack": 100,
+  "spattack": 122,
+  "defense": 123,
+  "spdefense": 120,
+  "speed": 80,
+  "photoURL":"https://cdn.bulbagarden.net/upload/a/ae/003Venusaur.png"
+},{
+  "pokeName": "Charmander",
+  "idNo": "4",
   "health": 39,
   "attack": 52,
   "spattack": 60,
@@ -9,8 +39,28 @@
   "speed": 65,
   "photoURL":"https://cdn.bulbagarden.net/upload/7/73/004Charmander.png"
 },{
+  "pokeName": "Charmeleon",
+  "idNo": "5",
+  "health": 58,
+  "attack": 64,
+  "spattack": 80,
+  "defense": 58,
+  "spdefense": 65,
+  "speed": 80,
+  "photoURL":"https://cdn.bulbagarden.net/upload/4/4a/005Charmeleon.png"
+},{
+  "pokeName": "Charizard",
+  "idNo": "6",
+  "health": 78,
+  "attack": 84,
+  "spattack": 109,
+  "defense": 78,
+  "spdefense": 85,
+  "speed": 100,
+  "photoURL":"https://cdn.bulbagarden.net/upload/7/7e/006Charizard.png"
+},{
   "pokeName": "Squirtle",
-  "idNo": "2",
+  "idNo": "7",
   "health": 44,
   "attack": 48,
   "spattack": 50,
@@ -19,13 +69,23 @@
   "speed": 43,
   "photoURL":"https://cdn.bulbagarden.net/upload/3/39/007Squirtle.png"
 },{
-  "pokeName": "Bulbasaur",
-  "idNo": "3",
-  "health": 45,
-  "attack": 49,
+  "pokeName": "Wartortle",
+  "idNo": "8",
+  "health": 59,
+  "attack": 63,
   "spattack": 65,
-  "defense": 49,
-  "spdefense": 65,
-  "speed": 45,
-  "photoURL":"https://cdn.bulbagarden.net/upload/2/21/001Bulbasaur.png"
+  "defense": 80,
+  "spdefense": 80,
+  "speed": 58,
+  "photoURL":"https://cdn.bulbagarden.net/upload/0/0c/008Wartortle.png"
+},{
+  "pokeName": "Blastoise",
+  "idNo": "9",
+  "health": 79,
+  "attack": 83,
+  "spattack": 85,
+  "defense": 100,
+  "spdefense": 105,
+  "speed": 78,
+  "photoURL":"https://cdn.bulbagarden.net/upload/0/02/009Blastoise.png"
 }]

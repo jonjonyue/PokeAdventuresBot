@@ -1,6 +1,7 @@
 [{
   "routeName": "Route 1",
   "ridNo": "1",
+  "desc": "A grassy hill filled with low level pokemon.",
   "connections": [
     {"ridNo": 2},
     {"ridNo": 3}
@@ -9,10 +10,14 @@
     {"idNo": 1},
     {"idNo": 2}
   ],
+  "encounters":["You wander through the tall grass when suddenly...", 
+    "The dirt path continues up the hill. As you walk past a rock...", 
+    "You stumble and trip over a root on the ground. You look up and ..."],
   "photoURL":"https://cdn.bulbagarden.net/upload/1/1b/Kanto_Route_1_HGSS.png"
 },{
   "routeName": "Route 2",
   "ridNo": "2",
+  "desc": "A forest filled with bug-type pokemon",
   "connections": [
     {"ridNo": 1}
   ],
@@ -20,15 +25,22 @@
     {"idNo": 2},
     {"idNo": 3}
   ],
+  "encounters":["You wander through the tall grass when suddenly...", 
+    "The dirt path continues up the hill. As you walk past a rock...", 
+    "You stumble and trip over a root on the ground. You look up and ..."],
   "photoURL":"https://cdn.bulbagarden.net/upload/c/c0/Kanto_Route_2_HGSS.png"
 },{
   "routeName": "Route 3",
   "ridNo": "3",
+  "desc": "A small mountain that is home to many rock-type pokemon",
   "connections": [
     {"ridNo": 1}
   ],
   "pokemon": [
     {"idNo": 3}
   ],
+  "encounters":["You wander through the tall grass when suddenly...", 
+    "The dirt path continues up the hill. As you walk past a rock...", 
+    "You stumble and trip over a root on the ground. You look up and ..."],
   "photoURL":"https://cdn.bulbagarden.net/upload/8/83/Kanto_Route_3_HGSS.png"
 }]

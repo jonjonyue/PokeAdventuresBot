@@ -294,6 +294,7 @@ async def exploreRoute(ctx, ridNo):
     numEnc = random.randint(1,3)
 
     for i in range(0, numEnc):
+        await ctx.author.send(route['encounters'][random.randint(0, len(route['encounters']) - 1)])
         time.sleep(random.randint(1,3))
         sel = random.randint(0, len(routePokes) - 1)
         poke = pokemon.find_one({'idNo': routePokes[sel]['idNo']})
@@ -380,12 +381,12 @@ def setPokeStats(poke, preset):
         poke['spdefenseIV'] = spdefenseIV
         poke['speedIV'] = speedIV
 
-    poke['health'] = int((((basePoke['health'] + healthIV)*2) * poke['level'] / 100) + poke['level'] + 10)
-    poke['attack'] = int((((basePoke['attack'] + attackIV)*2) * poke['level'] / 100) + 5)
-    poke['spattack'] = int((((basePoke['spattack'] + spattackIV)*2) * poke['level'] / 100) + 5)
-    poke['defense'] = int((((basePoke['defense'] + defenseIV)*2) * poke['level'] / 100) + 5)
-    poke['spdefense'] = int((((basePoke['spdefense'] + spdefenseIV)*2) * poke['level'] / 100) + 5)
-    poke['speed'] = int((((basePoke['speed'] + speedIV)*2) * poke['level'] / 100) + 5)
+    poke['health'] = int(((basePoke['health'] * 2 + healthIV) * poke['level'] / 100) + poke['level'] + 10)
+    poke['attack'] = int(((2* basePoke['attack'] + attackIV) * poke['level'] / 100) + 5)
+    poke['spattack'] = int(((2* basePoke['spattack'] + spattackIV) * poke['level'] / 100) + 5)
+    poke['defense'] = int(((2* basePoke['defense'] + defenseIV) * poke['level'] / 100) + 5)
+    poke['spdefense'] = int(((2* basePoke['spdefense'] + spdefenseIV) * poke['level'] / 100) + 5)
+    poke['speed'] = int(((2* basePoke['speed'] + speedIV) * poke['level'] / 100) + 5)
 
     poke['hp'] = poke['health'] 
     return poke
